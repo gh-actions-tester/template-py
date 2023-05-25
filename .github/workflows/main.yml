@@ -1,0 +1,37 @@
+name: _ASSIGNMENT
+
+on:
+  push:
+    branches:
+      - "**"
+
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v3
+        with:
+          python-version: "3.x"
+
+        # >> Install your dependencies for the project
+      - name: install deps
+        run: npm install
+
+        # >> Run your tests
+      - name: Run tests
+        run: npm test
+
+        # Set up the Python environment with the required packages
+      - name: install writers deps
+        run: pip install requests
+
+        # Write test results to Firestore
+      - name: Write test results to Firestore
+        run: |
+          branch_name=$(echo "${{ github.ref }}" | sed 's/refs\/heads\///')
+          python workflow_utils/db_writer.py $branch_name test-output.json

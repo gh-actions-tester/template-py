@@ -1,4 +1,1 @@
-# template
-# template
-# template
-# template
+# Template repository for automated testing on gh-action-tester

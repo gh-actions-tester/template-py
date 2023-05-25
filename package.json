@@ -1,0 +1,15 @@
+{
+	"name": "first-test-assignment",
+	"version": "1.0.0",
+	"description": "Create a sum function that, sums two numbers together",
+	"main": "index.js",
+	"scripts": {
+		"test": "jest --outputFile=test-output.json --json"
+	},
+	"keywords": [],
+	"author": "",
+	"license": "ISC",
+	"dependencies": {
+		"jest": "^29.5.0"
+	}
+}
