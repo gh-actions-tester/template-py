@@ -1,1 +1,1 @@
-# Template repository for automated testing on gh-action-tester
+# Template Repository for Automated Testing on GH-Action-Tester

@@ -1,37 +1,46 @@
-name: _ASSIGNMENT
+name: Assignment Workflow
 
 on:
   push:
-    branches:
-      - "**"
-
+    branches-ignore:
+      - "main"
   workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - name: Clone Repository
+        uses: actions/checkout@v3
 
-      - name: Set up Python
+      - name: Determine Commit Count
+        id: commit_count
+        run: echo "::set-output name=count::$(git rev-list --count HEAD)"
+
+      - name: Exit if Only One Commit -> No solution file
+        run: if [ "${{ steps.commit_count.outputs.count }}" == "1" ]; then exit 1; fi
+
+  test_and_update_firestore:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Setup Python Environment
         uses: actions/setup-python@v3
         with:
           python-version: "3.x"
 
-        # >> Install your dependencies for the project
-      - name: install deps
+        # >> This is where you would install any other dependencies you need <<
+      - name: Install Project Dependencies
         run: npm install
 
-        # >> Run your tests
-      - name: Run tests
+        # >> This is where you would run your tests and generate the test-output.json file <<
+      - name: Execute Tests
         run: npm test
 
-        # Set up the Python environment with the required packages
-      - name: install writers deps
+      - name: Install Additional Python Dependencies For DB Writer
         run: pip install requests
 
-        # Write test results to Firestore
-      - name: Write test results to Firestore
+      - name: Update Firestore with Test Results
         run: |
           branch_name=$(echo "${{ github.ref }}" | sed 's/refs\/heads\///')
           python workflow_utils/db_writer.py $branch_name test-output.json
