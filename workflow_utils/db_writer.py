@@ -11,9 +11,13 @@ branch_name = sys.argv[1]
 output_file = sys.argv[2]
 
 # Split the branch name into assignment ID and user ID
-branch_info = branch_name.split("%")
-assignment_id = branch_info[1]
-user_id = branch_info[2]
+try:
+    branch_info = branch_name.split("$")
+    assignment_id = branch_info[1]
+    user_id = branch_info[2]
+except IndexError:
+    print("Error: Invalid branch name.")
+    sys.exit(1)
 
 # Construct the path to the collection and the URL to the Firebase database
 path_to_collection = f"/user/{user_id}/assignments/{assignment_id}"
