@@ -12,7 +12,7 @@ output_file = sys.argv[2]
 
 # Split the branch name into assignment ID and user ID
 try:
-    branch_info = branch_name.split("%")
+    branch_info = branch_name.split("=+=")
     assignment_id = branch_info[1]
     user_id = branch_info[2]
 except IndexError:
