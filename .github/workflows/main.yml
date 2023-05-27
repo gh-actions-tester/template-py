@@ -13,17 +13,6 @@ jobs:
       - name: Clone Repository
         uses: actions/checkout@v3
 
-      - name: Determine Commit Count
-        id: commit_count
-        run: echo "::set-output name=count::$(git rev-list --count HEAD)"
-
-      - name: Exit if Only One Commit -> No solution file
-        run: if [ "${{ steps.commit_count.outputs.count }}" == "1" ]; then exit 1; fi
-
-  test_and_update_firestore:
-    runs-on: ubuntu-latest
-    needs: build
-    steps:
       - name: Setup Python Environment
         uses: actions/setup-python@v3
         with:
