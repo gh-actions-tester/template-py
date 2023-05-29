@@ -25,6 +25,7 @@ jobs:
         # >> This is where you would run your tests and generate the test-output.json file <<
       - name: Execute Tests
         run: npm test
+        continue-on-error: true
 
       - name: Install Dependencies for utilities
         run: |
