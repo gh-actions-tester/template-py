@@ -26,10 +26,22 @@ jobs:
       - name: Execute Tests
         run: npm test
 
-      - name: Install Additional Python Dependencies For DB Writer
-        run: pip install requests
+      - name: Install Dependencies for utilities
+        run: |
+          pip install requests
+          npm install junit2json
+
+      - name: Convert JUnitXML to JSON
+        run: npx junit2json -p test-output.xml > test-output.json
+
 
       - name: Update Firestore with Test Results
         run: |
           branch_name=$(echo "${{ github.ref }}" | sed 's/refs\/heads\///')
           python workflow_utils/db_writer.py $branch_name test-output.json
+      
+      - name: Upload test results as artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-output
+          path: test-output.json
