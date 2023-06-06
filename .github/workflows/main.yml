@@ -20,7 +20,7 @@ jobs:
 
         # >> This is where you would install any other dependencies you need <<
       - name: Install Project Dependencies
-        run: pip install -r requirements.txt
+        run: pip install -r tests/requirements.txt
 
         # >> This is where you would run your tests and generate the test-output.json file <<
       - name: Execute Tests
