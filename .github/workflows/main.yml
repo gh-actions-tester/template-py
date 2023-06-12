@@ -20,25 +20,29 @@ jobs:
 
         # >> This is where you would install any other dependencies you need <<
       - name: Install Project Dependencies
-        run: pip install -r tests/requirements.txt
+        run: npm install
 
         # >> This is where you would run your tests and generate the test-output.json file <<
       - name: Execute Tests
-        run: python -m pytest --junitxml=test-output.xml
+        run: npm test
         continue-on-error: true
 
       - name: Install Dependencies for utilities
         run: |
-          pip install requests 
+          pip install firebase-admin
           npm install junit2json
 
       - name: Convert JUnitXML to JSON
         run: npx junit2json -p test-output.xml > test-output.json
 
-      - name: Update Firestore with Test Results
+      - name: Set up Database Credentials
+        run: |
+          echo '${{ secrets.FIREBASE_ADMIN_SDK }}' > firebase-admin-credentials.json
+
+      - name: Update Database with Test Results
         run: |
           branch_name=$(echo "${{ github.ref }}" | sed 's/refs\/heads\///')
-          python workflow_utils/db_writer.py $branch_name test-output.json
+          python workflow_utils/db_writer.py $branch_name test-output.json firebase-admin-credentials.json
 
       - name: Upload test results as artifact
         uses: actions/upload-artifact@v3
