@@ -1,14 +1,17 @@
-import requests
 import json
 import sys
+import firebase_admin
+from firebase_admin import credentials
+from firebase_admin import db
 
-if len(sys.argv) < 3:
-    print("Error: Branch name or output file is missing.")
+if len(sys.argv) < 4:
+    print("Error: Branch name, output file, or service account key file is missing.")
     sys.exit(1)
 
-# Get the branch name and output file from the command line arguments
+# Get the branch name, output file, and the Firebase Admin SDK service account key file from the command line arguments
 branch_name = sys.argv[1]
 output_file = sys.argv[2]
+service_account_key_file = sys.argv[3]
 
 # Split the branch name into assignment ID and user ID
 try:
@@ -19,14 +22,17 @@ except IndexError:
     print("Error: Invalid branch name.")
     sys.exit(1)
 
-# Construct the path to the collection and the URL to the Firebase database
+# Construct the path to the collection
 path_to_collection = f"/user/{user_id}/assignments/{assignment_id}"
-firebase_url = f"https://homework-evaluation-default-rtdb.europe-west1.firebasedatabase.app{path_to_collection}.json"
 
-# Set the headers for the request
-headers = {
-    'Content-Type': 'application/json',
-}
+# Initialize the Firebase Admin SDK
+cred = credentials.Certificate(service_account_key_file)
+firebase_admin.initialize_app(cred, {
+    'databaseURL': 'https://homework-evaluation-default-rtdb.europe-west1.firebasedatabase.app'
+})
+
+# Get a reference to the collection
+ref = db.reference(path_to_collection)
 
 # Read contents from the JSON file
 try:
@@ -45,12 +51,12 @@ data = {
     "results": json_data,
 }
 
-# Send a PUT request to the Firebase database
-response = requests.put(firebase_url, headers=headers, data=json.dumps(data))
-
-# Check if the request was successful
-if response.status_code == 200:
+# Write the data to the database
+try:
+    ref.set(data)
     print("Successfully updated database")
-else:
+except Exception as e:
     print("Error: Failed to update database")
+    print(e)
     sys.exit(1)
+
