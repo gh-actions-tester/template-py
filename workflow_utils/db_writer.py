@@ -23,7 +23,7 @@ except IndexError:
     sys.exit(1)
 
 # Construct the path to the collection
-path_to_collection = f"/user/{user_id}/assignments/{assignment_id}"
+path_to_collection = f"/users/{user_id}/assignments/{assignment_id}"
 
 # Initialize the Firebase Admin SDK
 cred = credentials.Certificate(service_account_key_file)
