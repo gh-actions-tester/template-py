@@ -42,7 +42,7 @@ except KeyError:
     sys.exit(1)
 
 # Construct the path to the collection
-path_to_collection = f"/results/{user_id}/{assignment_id}"
+path_to_collection = f"results/{user_id}/{assignment_id}"
 
 # Update the 'results' field in the 'data' dictionary with the JSON data
 try:
