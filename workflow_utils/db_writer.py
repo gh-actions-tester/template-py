@@ -1,17 +1,16 @@
 import json
 import sys
-import firebase_admin
-from firebase_admin import credentials
-from firebase_admin import db
+import requests
 
-if len(sys.argv) < 4:
-    print("Error: Branch name, output file, or service account key file is missing.")
+if len(sys.argv) != 5:
+    print("Error: Branch name, output file, or authentication is missing.")
     sys.exit(1)
 
-# Get the branch name, output file, and the Firebase Admin SDK service account key file from the command line arguments
+# Get the branch name, output file, email, and password from the command line arguments
 branch_name = sys.argv[1]
 output_file = sys.argv[2]
-service_account_key_file = sys.argv[3]
+auth_email = sys.argv[3]
+auth_password = sys.argv[4]
 
 # Split the branch name into assignment ID and user ID
 try:
@@ -22,19 +21,30 @@ except IndexError:
     print("Error: Invalid branch name.")
     sys.exit(1)
 
+# Authenticate with Firebase using email and password
+firebase_auth_url = "https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword"
+firebase_api_key = "AIzaSyAOWp1D36HAnFweUUBeB5O3rPWJfCG3XWU"
+payload = {
+    "email": auth_email,
+    "password": auth_password,
+    "returnSecureToken": True
+}
+try:
+    response = requests.post(firebase_auth_url, params={"key": firebase_api_key}, json=payload)
+    response.raise_for_status()
+    id_token = response.json().get("idToken")
+except requests.exceptions.RequestException as e:
+    print("Error: Failed to authenticate with Firebase.")
+    print(e)
+    sys.exit(1)
+except KeyError:
+    print("Error: Invalid response from Firebase.")
+    sys.exit(1)
+
 # Construct the path to the collection
 path_to_collection = f"/results/{user_id}/{assignment_id}"
 
-# Initialize the Firebase Admin SDK
-cred = credentials.Certificate(service_account_key_file)
-firebase_admin.initialize_app(cred, {
-    'databaseURL': 'https://homework-evaluation-default-rtdb.europe-west1.firebasedatabase.app'
-})
-
-# Get a reference to the collection
-ref = db.reference(path_to_collection)
-
-# Read contents from the JSON file
+# Update the 'results' field in the 'data' dictionary with the JSON data
 try:
     with open(output_file, 'r') as file:
         json_data = json.load(file)
@@ -45,18 +55,19 @@ except json.JSONDecodeError:
     print(f"Error: Invalid JSON format in file '{output_file}'")
     sys.exit(1)
 
-# Update the 'results' field in the 'data' dictionary with the JSON data
 data = {
     "status": "completed",
     "results": json_data,
 }
 
-# Write the data to the database
+# Update the database using the Firebase Realtime Database REST API
+firebase_database_url = "https://homework-evaluation-default-rtdb.europe-west1.firebasedatabase.app/"
+database_url = f"{firebase_database_url}{path_to_collection}.json?auth={id_token}"
 try:
-    ref.set(data)
+    response = requests.put(database_url, json=data)
+    response.raise_for_status()
     print("Successfully updated database")
-except Exception as e:
+except requests.exceptions.RequestException as e:
     print("Error: Failed to update database")
     print(e)
     sys.exit(1)
-

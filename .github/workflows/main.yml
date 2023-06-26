@@ -35,14 +35,10 @@ jobs:
       - name: Convert JUnitXML to JSON
         run: npx junit2json -p test-output.xml > test-output.json
 
-      - name: Set up Database Credentials
-        run: |
-          echo '${{ secrets.FIREBASE_ADMIN_SDK }}' > firebase-admin-credentials.json
-
       - name: Update Database with Test Results
         run: |
           branch_name=$(echo "${{ github.ref }}" | sed 's/refs\/heads\///')
-          python workflow_utils/db_writer.py $branch_name test-output.json firebase-admin-credentials.json
+          python workflow_utils/db_writer.py $branch_name test-output.json ${{ secrets.AUTH_EMAIL }} ${{ secrets.AUTH_PASSWORD}}
 
       - name: Upload test results as artifact
         uses: actions/upload-artifact@v3
